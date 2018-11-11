@@ -18,7 +18,8 @@ namespace HoneyBear.HalClient
         private readonly IJsonHttpClient _client;
         private readonly IEnumerable<MediaTypeFormatter> _formatters;
         private readonly IEnumerable<IResource> _current = Enumerable.Empty<IResource>();
-
+        private HttpResponseMessage _lastHttpResponse = null;
+        
         private static readonly ICollection<MediaTypeFormatter> _defaultFormatters =
             new[] {new HalJsonMediaTypeFormatter()};
 
@@ -98,6 +99,8 @@ namespace HoneyBear.HalClient
         /// Gets the instance of <see cref="System.Net.Http.HttpClient"/> used by the <see cref="HalClient"/>.
         /// </summary>
         public HttpClient HttpClient => _client.HttpClient;
+
+        public HttpResponseMessage LastHttpResponse => _lastHttpResponse;
 
         /// <summary>
         /// Returns the most recently navigated resource of the specified type. 
@@ -539,6 +542,23 @@ namespace HoneyBear.HalClient
             return BuildAndExecuteAsync(relationship, parameters, uri => _client.DeleteAsync(uri));
         }
 
+        public async Task<IHalClient> DeleteAsync(IResource resource, string rel)
+        {
+            return await DeleteAsync(resource, rel, null, null);
+        }
+
+        public async Task<IHalClient> DeleteAsync(IResource resource, string rel, object parameters)
+        {
+            return await DeleteAsync(resource, rel, parameters, null);
+        }
+
+        public async Task<IHalClient> DeleteAsync(IResource resource, string rel, object parameters, string curie)
+        {
+            var halClient = new HalClient(this, new[] { resource });
+
+            return await halClient.DeleteAsync(rel, parameters, curie);
+        }
+
         /// <summary>
         /// Determines whether the most recently navigated resource contains the given link relation.
         /// </summary>
@@ -597,6 +617,8 @@ namespace HoneyBear.HalClient
 
         private IHalClient Process(HttpResponseMessage result)
         {
+            _lastHttpResponse = result;
+
             AssertSuccessfulStatusCode(result);
 
             var current =

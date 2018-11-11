@@ -354,6 +354,12 @@ namespace HoneyBear.HalClient
         /// <exception cref="AggregateException" />
         Task<IHalClient> DeleteAsync(string rel, object parameters, string curie);
 
+        Task<IHalClient> DeleteAsync(IResource resource, string rel);
+
+        Task<IHalClient> DeleteAsync(IResource resource, string rel, object parameters);
+
+        Task<IHalClient> DeleteAsync(IResource resource, string rel, object parameters, string curie);
+
         /// <summary>
         /// Determines whether the most recently navigated resource contains the given link relation.
         /// </summary>
